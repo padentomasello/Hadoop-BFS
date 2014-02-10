@@ -2,18 +2,10 @@
  *
  * CS61C Spring 2013 Project 2: Small World
  *
- * Partner 1 Name:
- * Partner 1 Login:
- *
- * Partner 2 Name:
- * Partner 2 Login:
  *
  * REMINDERS: 
  *
- * 1) YOU MUST COMPLETE THIS PROJECT WITH A PARTNER.
  * 
- * 2) DO NOT SHARE CODE WITH ANYONE EXCEPT YOUR PARTNER.
- * EVEN FOR DEBUGGING. THIS MEANS YOU.
  *
  */
 
@@ -47,8 +39,8 @@ public class SmallWorld {
     // Example writable type
     public static class EValue implements Writable {
 
-        public int exampleInt; //example integer field
-        public long[] exampleLongArray; //example array of longs
+        public int exampleInt; 
+        public long[] exampleLongArray; 
 
         public EValue(int exampleInt, long[] exampleLongArray) {
             this.exampleInt = exampleInt;
@@ -56,16 +48,13 @@ public class SmallWorld {
         }
 
         public EValue() {
-            // does nothing
         }
 
         // Serializes object - needed for Writable
         public void write(DataOutput out) throws IOException {
             out.writeInt(exampleInt);
 
-            // Example of serializing an array:
             
-            // It's a good idea to store the length explicitly
             int length = 0;
 
             if (exampleLongArray != null){
@@ -84,13 +73,13 @@ public class SmallWorld {
 
         // Deserializes object - needed for Writable
         public void readFields(DataInput in) throws IOException {
-            // example reading an int from the serialized object
+            //reading an int from the serialized object
             exampleInt = in.readInt();
 
-            // example reading length from the serialized object
+            //reading length from the serialized object
             int length = in.readInt();
 
-            // Example of rebuilding the array from the serialized object
+            //rebuilding the array from the serialized object
             exampleLongArray = new long[length];
             
             for(int i = 0; i < length; i++){
@@ -100,8 +89,6 @@ public class SmallWorld {
         }
 
         public String toString() {
-            // We highly recommend implementing this for easy testing and
-            // debugging. This version just returns an empty string.
             return new String();
         }
 
@@ -109,7 +96,7 @@ public class SmallWorld {
 
 
     /* The first mapper. Part of the graph loading process, currently just an 
-     * identity function. Modify as you wish. */
+     * identity function.*/
     public static class LoaderMap extends Mapper<LongWritable, LongWritable, 
         LongWritable, LongWritable> {
 
@@ -117,7 +104,7 @@ public class SmallWorld {
         public void map(LongWritable key, LongWritable value, Context context)
                 throws IOException, InterruptedException {
 
-            // example of getting value passed from main
+            //  getting value passed from main
             int inputValue = Integer.parseInt(context.getConfiguration().get("inputValue"));
 
 
@@ -126,10 +113,7 @@ public class SmallWorld {
     }
 
 
-    /* The first reducer. This is also currently an identity function (although it
-     * does break the input Iterable back into individual values). Modify it
-     * as you wish. In this reducer, you'll also find an example of loading
-     * and using the denom field.  
+    /* The first reducer. This is also currently an identity function  
      */
     public static class LoaderReduce extends Reducer<LongWritable, LongWritable, 
         LongWritable, LongWritable> {
@@ -138,37 +122,17 @@ public class SmallWorld {
 
         public void reduce(LongWritable key, Iterable<LongWritable> values, 
             Context context) throws IOException, InterruptedException {
-            // We can grab the denom field from context: 
+            // We grab the denom field from context: 
             denom = Long.parseLong(context.getConfiguration().get("denom"));
 
-            // You can print it out by uncommenting the following line:
-            // System.out.println(denom);
 
-            // Example of iterating through an Iterable
+            //  iterating through an Iterable
             for (LongWritable value : values){            
                 context.write(key, value);
             }
         }
 
     }
-
-
-    // ------- Add your additional Mappers and Reducers Here ------- //
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public static void main(String[] rawArgs) throws Exception {
         GenericOptionsParser parser = new GenericOptionsParser(rawArgs);
@@ -178,9 +142,6 @@ public class SmallWorld {
         // Pass in denom command line arg:
         conf.set("denom", args[2]);
 
-        // Sample of passing value from main into Mappers/Reducers using
-        // conf. You might want to use something like this in the BFS phase:
-        // See LoaderMap for an example of how to access this value
         conf.set("inputValue", (new Integer(5)).toString());
 
         // Setting up mapreduce job to load in graph
@@ -212,14 +173,11 @@ public class SmallWorld {
             job = new Job(conf, "bfs" + i);
             job.setJarByClass(SmallWorld.class);
 
-            // Feel free to modify these four lines as necessary:
             job.setMapOutputKeyClass(LongWritable.class);
             job.setMapOutputValueClass(LongWritable.class);
             job.setOutputKeyClass(LongWritable.class);
             job.setOutputValueClass(LongWritable.class);
 
-            // You'll want to modify the following based on what you call
-            // your mapper and reducer classes for the BFS phase.
             job.setMapperClass(Mapper.class); // currently the default Mapper
             job.setReducerClass(Reducer.class); // currently the default Reducer
 
@@ -238,24 +196,18 @@ public class SmallWorld {
         job = new Job(conf, "hist");
         job.setJarByClass(SmallWorld.class);
 
-        // Feel free to modify these two lines as necessary:
         job.setMapOutputKeyClass(LongWritable.class);
         job.setMapOutputValueClass(LongWritable.class);
 
-        // DO NOT MODIFY THE FOLLOWING TWO LINES OF CODE:
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(LongWritable.class);
 
-        // You'll want to modify the following based on what you call your
-        // mapper and reducer classes for the Histogram Phase
         job.setMapperClass(Mapper.class); // currently the default Mapper
         job.setReducerClass(Reducer.class); // currently the default Reducer
 
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 
-        // By declaring i above outside of loop conditions, can use it
-        // here to get last bfs output to be input to histogram
         FileInputFormat.addInputPath(job, new Path("bfs-"+ i +"-out"));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
